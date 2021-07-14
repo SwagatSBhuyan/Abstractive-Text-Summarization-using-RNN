@@ -43,8 +43,8 @@ TARGET_SIZE = 0
 HIDDEN_SIZE = 32
 LEARNING_RATE = 0.005
 STACKED_LAYERS = 2
-EMBEDDING_PATH = '../../dataset/google_news/GoogleNews-vectors-negative300.bin'
-GLOVE_EMBEDDING = '../../embeddings/glove.6B.300d.txt'
+EMBEDDING_PATH = '../embeddings/google_news/GoogleNews-vectors-negative300.bin'
+GLOVE_EMBEDDING = '../embeddings/glove/glove.6B.300d.txt'
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

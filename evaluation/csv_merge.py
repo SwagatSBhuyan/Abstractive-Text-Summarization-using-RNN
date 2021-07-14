@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-df1 = pd.read_csv('100_rows.csv', encoding='utf-8')
-df2 = pd.read_csv('entailment_scores.csv', encoding='utf-8')
+df1 = pd.read_csv('../datasets/100_rows.csv', encoding='utf-8')
+df2 = pd.read_csv('scores/entailment_scores.csv', encoding='utf-8')
 df2 = df2.dropna()
 
 entailments = []
@@ -25,4 +25,4 @@ df1.insert(11, "C", contradictions, True)
 
 print(df1.head())
 
-df1.to_csv('final_evaluation_scores.csv')
+df1.to_csv('scores/final_evaluation_scores.csv')
