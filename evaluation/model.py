@@ -130,7 +130,7 @@ def multi_acc(y_pred, y_test):
 def train(model, train_loader, val_loader, criterion, optimizer):  
   total_step = len(train_loader)
 
-  for epoch in range(EPOCHS):
+  for epoch in tqdm.tqdm(range(EPOCHS)):
     start = time.time()
     model.train()
     total_train_loss = 0
