@@ -2,7 +2,8 @@ import torch
 from torch.utils.data import Dataset
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer 
-from nltk.tokenize import word_tokenize 
+from nltk.tokenize import word_tokenize
+import pickle 
 
 def pair_generator(df):
     sentence_pair  = []
