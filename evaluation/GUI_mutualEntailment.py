@@ -152,7 +152,7 @@ def ent(sen1, sen2):
     return labss
 
 
-class SingleEntailment(App):
+class MutualEntailment(App):
 
     def build(self):
 
@@ -220,7 +220,7 @@ class SingleEntailment(App):
 
 if __name__ == "__main__":
 
-    SingleEntailment().run()
+    MutualEntailment().run()
 
 
 
