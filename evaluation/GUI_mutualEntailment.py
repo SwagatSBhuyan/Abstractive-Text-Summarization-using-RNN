@@ -149,7 +149,43 @@ def ent(sen1, sen2):
             labs2 = labs2 + 'contradiction'
     # print(labs)
     labss = str(labs1) + ' <---> ' + str(labs2)
-    return labss
+
+    maxi1 = torch.max(prediction1, dim=0)
+    mini1 = torch.min(prediction1, dim=0)
+    # print(maxi[0][0])
+    denom11 = float(maxi1[0][0].to('cpu')) - float(mini1[0][0].to('cpu'))
+    denom21 = float(maxi1[0][1].to('cpu')) - float(mini1[0][1].to('cpu'))
+    denom31 = float(maxi1[0][2].to('cpu')) - float(mini1[0][2].to('cpu'))
+    denom111 = ( denom11 + denom21 + denom31 ) / 3
+    if denom111 == 0:
+        denom111 = 1
+
+    maxi2 = torch.max(prediction2, dim=0)
+    mini2 = torch.min(prediction2, dim=0)
+    # print(maxi[0][0])
+    denom12 = float(maxi2[0][0].to('cpu')) - float(mini2[0][0].to('cpu'))
+    denom22 = float(maxi2[0][1].to('cpu')) - float(mini2[0][1].to('cpu'))
+    denom32 = float(maxi2[0][2].to('cpu')) - float(mini2[0][2].to('cpu'))
+    denom222 = ( denom12 + denom22 + denom32 ) / 3
+    if denom222 == 0:
+        denom222 = 1
+
+    pred1 = []
+    pred2 = []
+    for i, j in zip(prediction1, prediction2):
+        p1 = []
+        p2 = []
+        for k in i:
+            p1.append(float(k.to('cpu'))/denom111)
+        for k in j:
+            p2.append(float(k.to('cpu'))/denom222)
+        pred1.append(p1)
+        pred2.append(p2)
+    # print(aa)
+
+
+
+    return labss, pred1, pred2
 
 
 class MutualEntailment(App):
@@ -158,61 +194,78 @@ class MutualEntailment(App):
 
         self.window = GridLayout()
         self.window.cols = 1
-        self.window.size_hint = (0.6, 0.8)
+        self.window.size_hint = (0.5, 0.8)
         self.window.pos_hint = {"center_x": 0.5, "center_y": 0.5}
 
         self.lab1 = Label(
-            text = "Enter Sentence1.....",
-            font_size = 18,
-            color = '#00FFCE'
+            text = "Enter Sentence1",
+            font_size = 24,
+            color = '#00FFDE'
         )
         self.window.add_widget(self.lab1)   
         self.sen1 = TextInput(
-            multiline = False,
+            multiline = True,
             padding_y = (10, 10),
-            size_hint = (1, 0.4)
+            size_hint = (1, 1)
         )
         self.window.add_widget(self.sen1)
 
         self.lab2 = Label(
-            text = "Enter Sentence2.....",
-            font_size = 18,
-            color = '#00FFCE'
+            text = "Enter Sentence2",
+            font_size = 24,
+            color = '#00FFDE'
         )
         self.window.add_widget(self.lab2)   
         self.sen2 = TextInput(
-            multiline = False,
+            multiline = True,
             padding_y = (10, 10),
-            size_hint = (1, 0.4)            
+            size_hint = (1, 1)          
         )
         self.window.add_widget(self.sen2)  
 
         self.button = Button(
-            text = "Entailment Scores",
+            text = "Mutual Entailment Scores",
             size_hint = (1, 0.5),
             bold = True,
             background_color = '#00FFCE'
         )
 
-        self.lab3 = Label(
+        self.lab_space = Label(
             text = "",
-            font_size = 10,
-            color = '#00FFCE'
+            font_size = 6,
         )
-        self.window.add_widget(self.lab3)  
+        self.window.add_widget(self.lab_space) 
 
         self.button.bind(on_press = self.callback)
         self.window.add_widget(self.button)
 
-        self.lab = Label(text = "")
-        self.window.add_widget(self.lab)
-
         return self.window
 
     def callback(self, instance):
-        # self.lab = Label(text = "\n>" + self.sen1.text + " >" + self.sen2.text)
-        self.window.remove_widget(self.lab)
-        self.lab = Label(text = ent(self.sen1.text, self.sen2.text))
+        self.window.remove_widget(self.button) 
+        tx, pp1, pp2 = ent(self.sen1.text, self.sen2.text)
+        me = pp1[0][0] + pp2[0][0] / 2
+        mn = pp1[0][1] + pp2[0][2] / 2
+        mc = pp1[0][1] + pp2[0][2] / 2
+        mee = (me + 0.5*mn + mc) / 2
+        lab_m = ""
+        if mee < -0.2:
+            lab_m = "Contradiction"
+        elif mee >= -0.2 and mee < 0:
+            lab_m = "Negative Mutual Entailment"
+        else:
+            lab_m = "Positive Mutual Entailment"
+        tx = '\n' + tx + "\nMutual Entailment score: " + str(me) 
+        tx = tx + "\nMutual Neutrality Score: " + str(mn)
+        tx = tx + "\nMutual Contradiction Score: " + str(me)
+        tx = tx + "\nMutual Entailment Metric Score [-1:1]: " + str(mee)
+        tx = tx + "\nMutual Entailment Label: " + str(lab_m)
+        
+        self.lab = Label(
+            text = tx,
+            font_size = 16,
+            color = '#55FFCE'
+        )
         self.window.add_widget(self.lab)
 
 

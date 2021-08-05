@@ -114,16 +114,36 @@ def ent(sen1, sen2):
     for i in soft:
         if i == 0:
             # labs.append('entailment')
-            labs = labs + 'entailment'
+            labs = labs + 'Entailment'
         elif i == 1:
             # labs.append('neutral')
-            labs = labs + 'neutral'
+            labs = labs + 'Neutral'
         else:
             # labs.append('contradiction')
-            labs = labs + 'contradiction'
+            labs = labs + 'Contradiction'
     # print(labs)
 
-    return labs
+    maxi = torch.max(prediction, dim=0)
+    mini = torch.min(prediction, dim=0)
+    # print(maxi[0][0])
+    denom1 = float(maxi[0][0].to('cpu')) - float(mini[0][0].to('cpu'))
+    denom2 = float(maxi[0][1].to('cpu')) - float(mini[0][1].to('cpu'))
+    denom3 = float(maxi[0][2].to('cpu')) - float(mini[0][2].to('cpu'))
+    denom = ( denom1 + denom2 + denom3 ) / 3
+    if denom == 0:
+        denom = 1
+    # print(maxi, mini)
+    # print(denom)
+
+    pred = []
+    for i in prediction:
+        p = []
+        for j in i:
+            p.append(float(j.to('cpu'))/denom)
+        pred.append(p)
+    # print(aa)
+
+    return labs, pred
 
 
 class SingleEntailment(App):
@@ -132,48 +152,46 @@ class SingleEntailment(App):
 
         self.window = GridLayout()
         self.window.cols = 1
-        self.window.size_hint = (0.6, 0.8)
+        self.window.size_hint = (0.5, 0.8)
         self.window.pos_hint = {"center_x": 0.5, "center_y": 0.5}
 
         self.lab1 = Label(
-            text = "Enter Sentence1.....",
-            font_size = 18,
-            color = '#00FFCE'
+            text = "Enter Sentence1",
+            font_size = 24,
+            color = '#00FFDE'
         )
-        self.window.add_widget(self.lab1)   
+        self.window.add_widget(self.lab1)    
         self.sen1 = TextInput(
-            multiline = False,
+            multiline = True,
             padding_y = (10, 10),
-            size_hint = (1, 0.4)
+            size_hint = (1, 1)
         )
         self.window.add_widget(self.sen1)
 
         self.lab2 = Label(
-            text = "Enter Sentence2.....",
-            font_size = 18,
-            color = '#00FFCE'
+            text = "Enter Sentence2",
+            font_size = 24,
+            color = '#00FFDE'
         )
         self.window.add_widget(self.lab2)   
         self.sen2 = TextInput(
-            multiline = False,
+            multiline = True,
             padding_y = (10, 10),
-            size_hint = (1, 0.4)            
+            size_hint = (1, 1)            
         )
         self.window.add_widget(self.sen2)  
 
         self.button = Button(
-            text = "Entailment Scores",
+            text = "Summary Entailment Scores",
             size_hint = (1, 0.5),
             bold = True,
             background_color = '#00FFCE'
         )
-
-        self.lab3 = Label(
+        self.lab_space = Label(
             text = "",
-            font_size = 10,
-            color = '#00FFCE'
+            font_size = 6,
         )
-        self.window.add_widget(self.lab3)  
+        self.window.add_widget(self.lab_space)
 
         self.button.bind(on_press = self.callback)
         self.window.add_widget(self.button)
@@ -181,8 +199,58 @@ class SingleEntailment(App):
         return self.window
 
     def callback(self, instance):
+        # self.window.remove_widget(self.lab1)  
+        # self.window.remove_widget(self.lab2)  
+        # self.window.remove_widget(self.sen1)  
+        # self.window.remove_widget(self.sen2) 
+        self.window.remove_widget(self.button) 
+
         # self.lab = Label(text = "\n>" + self.sen1.text + " >" + self.sen2.text)
-        self.lab = Label(text = ent(self.sen1.text, self.sen2.text))
+        tx, p_list = ent(self.sen1.text, self.sen2.text)
+        e = p_list[0][0]
+        n = p_list[0][1]
+        c = p_list[0][2]
+        ee = (e + 0.5*n + c) / 2.5
+        tx = '\nLabel: ' + tx + "\nEntailment: " + str(e)
+        tx = tx + "\nNeutrality: " + str(n)
+        tx = tx + "\nContradiction: " + str(c)
+        tx = tx + "\nFinal Entailment Metric Score [-1:1]: " + str(ee)
+        # self.window.remove_widget(self.lab_summ)
+
+        self.lab_prem = Label(
+            text = "PREMISE",
+            font_size = 20,
+            color = '#00FFDE',
+            # text_size = self.size,
+            underline = True
+        )
+        self.lab_summ = Label(
+            # multiline = True,
+            text = self.sen1.text,
+            font_size = 16,
+            color = '#FFFFFF'
+        )
+        self.lab_hypo = Label(
+            text = "HYPOTHESIS",
+            font_size = 20,
+            color = '#55FFDE',
+            underline = True
+        )
+        self.lab_h = Label(
+            text = self.sen2.text,
+            font_size = 16,
+            color = '#FFFFFF'
+        )
+        self.lab = Label(
+            text = tx,
+            font_size = 16,
+            color = '#55FFCE'
+        )
+
+        # self.window.add_widget(self.lab_prem)
+        # self.window.add_widget(self.lab_summ) 
+        # self.window.add_widget(self.lab_hypo)
+        # self.window.add_widget(self.lab_h)
         self.window.add_widget(self.lab)
 
 
