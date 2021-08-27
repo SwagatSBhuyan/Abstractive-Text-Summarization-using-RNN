@@ -40,8 +40,8 @@ import numpy as np
 
 
 print("\nReading train, test df.......")
-train_df = pd.read_csv('../../../evaluation/snli/snli_/snli_1.0_train.csv')
-val_df   = pd.read_csv('../../../evaluation/snli/snli_/snli_1.0_dev.csv')
+train_df = pd.read_csv('../../../evaluation/snli/snli_/snli_1.0_train.csv',  encoding='utf-8')
+val_df   = pd.read_csv('../../../evaluation/snli/snli_/snli_1.0_dev.csv',  encoding='utf-8')
 # train_df = pd.read_csv('../datasets/snli/snli_/snli_1.0_train.csv')
 # val_df   = pd.read_csv('../datasets/snli/snli_/snli_1.0_dev.csv')  <-- personalized read directories
 train_df, val_df = preprocess_text(train_df, val_df)
@@ -51,11 +51,12 @@ train_df, val_df = preprocess_text(train_df, val_df)
 print("\nReading custom df1.......")
 # rw = pd.read_csv('../datasets/Transformer_generated_summaries.csv', encoding='utf-8')
 # rw = pd.read_csv('ins.csv', encoding='utf-8')
-rw = pd.read_csv('test_sets/ins.csv', encoding='ansi')
+rw = pd.read_csv('test_sets/based_ins.csv', encoding='utf-8')
 # rw = pd.read_csv('../datasets/test_data/Transformer_generated_summaries.csv', encoding='utf-8')
 rw.drop(['original_summary'], axis = 1, inplace=True)
 rw.rename(columns = {'text':'sentence1'}, inplace = True)
-rw.rename(columns = {'Predicted_summary':'sentence2'}, inplace = True)
+rw.rename(columns = {'predicted_summary':'sentence2'}, inplace = True)
+# rw.rename(columns = {'Predicted_summary':'sentence2'}, inplace = True)
 # print(rw)
 gold = [-1] * 100
 rw.insert(loc=0, column='gold_label', value=gold)
@@ -67,11 +68,13 @@ rw = rw.dropna()
 print("\nReading custom df2.......")
 # rw = pd.read_csv('../datasets/Transformer_generated_summaries.csv', encoding='utf-8')
 # rw = pd.read_csv('ins.csv', encoding='utf-8')
-rw_ = pd.read_csv('test_sets/ins.csv', encoding='ansi')
+# rw_ = pd.read_csv('test_sets/ins.csv', encoding='ansi')
+rw_ = pd.read_csv('test_sets/based_ins.csv', encoding='utf-8')
 # rw = pd.read_csv('../datasets/test_data/Transformer_generated_summaries.csv', encoding='utf-8')
 rw_.drop(['text'], axis = 1, inplace=True)
 rw_.rename(columns = {'original_summary':'sentence1'}, inplace = True)
-rw_.rename(columns = {'Predicted_summary':'sentence2'}, inplace = True)
+rw_.rename(columns = {'predicted_summary':'sentence2'}, inplace = True)
+# rw_.rename(columns = {'Predicted_summary':'sentence2'}, inplace = True)
 gold = [-1] * 100
 rw_.insert(loc=0, column='gold_label', value=gold)
 rw_ = rw_[['gold_label', 'sentence1', 'sentence2']]
@@ -79,7 +82,17 @@ rw_ = rw_[['gold_label', 'sentence1', 'sentence2']]
 rw_ = rw_.dropna()
 # rw_.head()
 
-print("\nPreProcessing tran and test sets.......")
+print("\nClean Texting train and test sets, and rw and rw_.......")
+train_df['sentence1'] = train_df['sentence1'].astype(str).apply(lambda text: clean_text(text))
+train_df['sentence2'] = train_df['sentence2'].astype(str).apply(lambda text: clean_text(text))
+val_df['sentence1'] = val_df['sentence1'].astype(str).apply(lambda text: clean_text(text))
+val_df['sentence2'] = val_df['sentence2'].astype(str).apply(lambda text: clean_text(text))
+rw['sentence1'] = rw['sentence1'].astype(str).apply(lambda text: clean_text(text))
+rw['sentence2'] = rw['sentence2'].astype(str).apply(lambda text: clean_text(text))
+rw_['sentence1'] = rw_['sentence1'].astype(str).apply(lambda text: clean_text(text))
+rw_['sentence2'] = rw_['sentence2'].astype(str).apply(lambda text: clean_text(text))
+
+print("\nPreProcessing train and test sets.......")
 train_df = train_df[(train_df['sentence1'].str.split().str.len() > 0) & (train_df['sentence2'].str.split().str.len() > 0)]
 val_df = val_df[(val_df['sentence1'].str.split().str.len() > 0) & (val_df['sentence2'].str.split().str.len() > 0)]
 print(train_df[(train_df['sentence1'].str.split().str.len() == 0) | (train_df['sentence2'].str.split().str.len() == 0)])
@@ -125,7 +138,8 @@ for data in [sentence_pairs]:
     hypothesis = sentence_pair[1]
     vocab.addSentence(premise)
     vocab.addSentence(hypothesis)
-with open('saved_vocabs/custom_voc.class', 'wb') as vocab_file:
+
+with open('saved_vocabs/based_voc.class', 'wb') as vocab_file:
     pickle.dump(vocab, vocab_file)
 print("Vocab size:", len(vocab.word2index))
 

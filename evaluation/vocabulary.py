@@ -4,6 +4,7 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer 
 from nltk.tokenize import word_tokenize
 import pickle 
+from preprocess import * 
 
 def pair_generator(df):
     sentence_pair  = []
@@ -26,6 +27,7 @@ class Vocabulary:
       self.addWord(word)
 
   def addWord(self, word):
+    # word = clean_text(word)
     if word not in self.word2index:
       self.word2index[word] = self.n_words + 1
       self.word2count[word] = 1
@@ -51,8 +53,8 @@ def get_pair_indices(vocab, sentence_pairs):
   indices_pairs = []
   for sentence_pair in sentence_pairs:
     premise = sentence_pair[0]
-    premise_indices = [vocab.word2index[w] for w in word_tokenize(premise)]
+    premise_indices = [vocab.word2index[clean_text(w)] for w in word_tokenize(premise)]
     hypothesis = sentence_pair[1]
-    hypothesis_indices = [vocab.word2index[w] for w in word_tokenize(hypothesis)]
+    hypothesis_indices = [vocab.word2index[clean_text(w)] for w in word_tokenize(hypothesis)]
     indices_pairs.append((premise_indices, hypothesis_indices))
   return indices_pairs

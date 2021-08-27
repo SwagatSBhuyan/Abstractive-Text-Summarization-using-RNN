@@ -65,7 +65,14 @@ class LSTM(nn.Module):
     self.embedding.weight.data.copy_(torch.from_numpy(weights_matrix))
     self.embedding.weight.requires_grad = True
 
-    self.lstm = nn.LSTM(input_size=embedding_dim, hidden_size=self.hidden_size, num_layers=self.stacked_layers, batch_first = True, dropout=0.2, bidirectional=bidirectional)
+    self.lstm = nn.LSTM(
+      input_size=embedding_dim, 
+      hidden_size=self.hidden_size, 
+      num_layers=self.stacked_layers, 
+      batch_first = True, 
+      dropout=0.2, 
+      bidirectional=bidirectional
+    )
     
     self.relu = nn.ReLU()
     self.dropout = nn.Dropout(p = 0.2)
